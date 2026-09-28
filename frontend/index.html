@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RecallDesk — support with perfect recall</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">RD</span>
+      <div>
+        <h1>RecallDesk</h1>
+        <p>Support with perfect recall</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="health">
+        <span class="dot" id="health-dot"></span>
+        <span id="health-label">checking…</span>
+      </div>
+      <label class="switch-wrap" title="Toggle agent memory">
+        <span>Agent memory</span>
+        <input type="checkbox" id="memory-toggle" checked>
+        <span class="switch"></span>
+      </label>
+      <button id="demo-btn" class="btn btn-secondary">Run demo scenario</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="chat-panel panel">
+      <div class="banner" id="mode-banner"></div>
+      <div class="customers" id="customer-chips"></div>
+      <div class="thread" id="thread"></div>
+      <form class="composer" id="chat-form">
+        <input type="text" id="chat-input" placeholder="Type a message as the customer…" autocomplete="off" required>
+        <button type="submit" class="btn btn-primary" id="send-btn">Send</button>
+      </form>
+    </section>
+
+    <aside class="lens-panel panel">
+      <h2>Memory Lens</h2>
+      <nav class="tabs">
+        <button class="tab active" data-tab="used">Used in reply</button>
+        <button class="tab" data-tab="observations">Observations</button>
+        <button class="tab" data-tab="history">Raw history</button>
+      </nav>
+      <div class="tab-body" id="tab-used"></div>
+      <div class="tab-body hidden" id="tab-observations"></div>
+      <div class="tab-body hidden" id="tab-history"></div>
+    </aside>
+  </main>
+
+  <div class="toast hidden" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
