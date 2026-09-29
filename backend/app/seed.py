@@ -136,29 +136,29 @@ PLAYBOOK_FACTS: list[tuple[str, str, datetime]] = [
 ]
 
 
-def seed(memory: MemoryLayer) -> dict:
+async def seed(memory: MemoryLayer) -> dict:
     """Idempotently load the synthetic customers and playbook into Hindsight."""
-    if memory.is_seeded():
+    if await memory.is_seeded():
         return {
             "customers": [c["customer_id"] for c in CUSTOMERS],
             "playbook_facts": len(PLAYBOOK_FACTS),
             "skipped": True,
         }
-    memory.ensure_playbook_bank()
+    await memory.ensure_playbook_bank()
     for customer in CUSTOMERS:
-        memory.ensure_customer_bank(customer["customer_id"], customer["name"], customer["plan"])
+        await memory.ensure_customer_bank(customer["customer_id"], customer["name"], customer["plan"])
         bank_id = f"customer-{customer['customer_id']}"
         for content, context, ts in customer["facts"]:
             try:
-                memory.retain_fact(bank_id, content, context, ts)
+                await memory.retain_fact(bank_id, content, context, ts)
             except Exception as exc:
                 log.warning("seed retain failed for %s: %s", bank_id, exc)
     for content, context, ts in PLAYBOOK_FACTS:
         try:
-            memory.retain_fact("support-playbook", content, context, ts)
+            await memory.retain_fact("support-playbook", content, context, ts)
         except Exception as exc:
             log.warning("seed retain failed for playbook: %s", exc)
-    memory.mark_seeded()
+    await memory.mark_seeded()
     return {
         "customers": [c["customer_id"] for c in CUSTOMERS],
         "playbook_facts": len(PLAYBOOK_FACTS),

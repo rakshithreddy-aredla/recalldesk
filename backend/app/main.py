@@ -153,7 +153,7 @@ class SeedResponse(BaseModel):
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest) -> ChatResponse:
+async def chat(req: ChatRequest) -> ChatResponse:
     state = _session(req.customer_id)
     detected = _classify_frustration(req.message)
     if detected == "angry":
@@ -167,20 +167,20 @@ def chat(req: ChatRequest) -> ChatResponse:
     degraded = not llm.available
 
     if req.memory_mode == "on":
-        history_hits = memory.recall_customer(req.customer_id, req.message)
-        playbook_hits = memory.recall_playbook(req.message)
+        history_hits = await memory.recall_customer(req.customer_id, req.message)
+        playbook_hits = await memory.recall_playbook(req.message)
         system_prompt = _memory_system_prompt(
             req.customer_id, name, plan, history_hits, playbook_hits, frustration
         )
-        reply = llm.support_reply(system_prompt, state["history"], req.message)
-        retained = memory.remember_exchange(
+        reply = await llm.support_reply(system_prompt, state["history"], req.message)
+        retained = await memory.remember_exchange(
             req.customer_id, req.message, reply, state["session_id"], frustration
         )
     else:
         history_hits, playbook_hits = [], []
         system_prompt = _generic_system_prompt()
-        reply = llm.support_reply(system_prompt, [], req.message)
-        memory.sandbox_retain(req.message, reply)
+        reply = await llm.support_reply(system_prompt, [], req.message)
+        await memory.sandbox_retain(req.message, reply)
         retained = False
 
     state["history"].append({"role": "user", "content": req.message})
@@ -197,28 +197,33 @@ def chat(req: ChatRequest) -> ChatResponse:
 
 
 @app.get("/customer/{customer_id}/memory")
-def customer_memory(customer_id: str) -> dict[str, Any]:
-    snapshot = memory.customer_memory_snapshot(customer_id)
+async def customer_memory(customer_id: str) -> dict[str, Any]:
+    snapshot = await memory.customer_memory_snapshot(customer_id)
     return {"customer_id": customer_id, **snapshot}
 
 
 @app.post("/seed", response_model=SeedResponse)
-def run_seed() -> SeedResponse:
-    if not memory.ping():
+async def run_seed() -> SeedResponse:
+    if not await memory.ping():
         raise HTTPException(
             status_code=503,
             detail="Hindsight is unreachable at HINDSIGHT_API_URL; start it with 'hindsight-api' first.",
         )
-    return SeedResponse(**seed(memory))
+    return SeedResponse(**await seed(memory))
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
+async def health() -> dict[str, str]:
     return {
         "status": "ok",
-        "hindsight": "up" if memory.ping() else "down",
+        "hindsight": "up" if await memory.ping() else "down",
         "llm": "up" if llm.available else "down",
     }
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    await memory.aclose()
 
 
 frontend_dir = Path(__file__).resolve().parents[2] / "frontend"
