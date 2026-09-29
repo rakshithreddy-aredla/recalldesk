@@ -31,10 +31,11 @@ log = logging.getLogger("recalldesk.main")
 load_dotenv()
 
 HINDSIGHT_API_URL = os.getenv("HINDSIGHT_API_URL", "http://localhost:8888")
+HINDSIGHT_API_KEY = os.getenv("HINDSIGHT_API_KEY") or None
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 LLM_MODEL = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")
 
-memory = MemoryLayer(base_url=HINDSIGHT_API_URL)
+memory = MemoryLayer(base_url=HINDSIGHT_API_URL, api_key=HINDSIGHT_API_KEY)
 llm = LLM(api_key=GROQ_API_KEY, model=LLM_MODEL)
 
 app = FastAPI(title="RecallDesk", version="1.0.0")

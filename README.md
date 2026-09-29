@@ -20,34 +20,42 @@ pip install -r backend/requirements.txt
 pip install -r backend/requirements.txt
 ```
 
-2. Start the Hindsight memory server (terminal 1):
+2. Configure keys — copy `backend/.env.example` to `backend/.env` and fill in:
 
-```bash
-pip install hindsight-api
-export OPENAI_API_KEY=sk-xxx            # Hindsight's internal extractor needs an LLM key
-export HINDSIGHT_API_LLM_API_KEY=$OPENAI_API_KEY
-hindsight-api                            # serves http://localhost:8888
-```
+   - `GROQ_API_KEY` — your [Groq](https://groq.com/) key (free tier is fine; it powers the support replies)
+   - Then pick ONE memory lane:
+     - **Hindsight Cloud (recommended — no local LLM needed):** sign up at [ui.hindsight.vectorize.io](https://ui.hindsight.vectorize.io), add the instance, copy your **instance URL** into `HINDSIGHT_API_URL` and your **API key** into `HINDSIGHT_API_KEY`. Skip step 3.
+     - **Local Hindsight:** paste a Gemini API key (free from [Google AI Studio](https://aistudio.google.com)) into `HINDSIGHT_API_LLM_API_KEY` (Hindsight's internal extractor needs ~64k output tokens per retain call — Groq's free tier is NOT sufficient for the server).
 
-Alternatively use [Hindsight Cloud](https://ui.hindsight.vectorize.io) and point `HINDSIGHT_API_URL` at your instance.
-
-3. Configure and start RecallDesk (terminal 2):
+3. Start the Hindsight memory server (terminal 1, local lane only):
 
 ```powershell
 # Windows PowerShell
-copy backend\.env.example backend\.env   # then edit: GROQ_API_KEY=gsk-xxx
-Set-Location backend
-uvicorn app.main:app --port 8000
+pip install hindsight-api
+.\start-hindsight.ps1                    # serves http://localhost:8888
 ```
 
 ```bash
 # macOS / Linux
-cp backend/.env.example backend/.env     # then edit: GROQ_API_KEY=gsk-xxx
-cd backend
-uvicorn app.main:app --port 8000
+pip install hindsight-api
+export HINDSIGHT_API_LLM_PROVIDER=gemini
+export HINDSIGHT_API_LLM_API_KEY=xxx
+hindsight-api                            # serves http://localhost:8888
 ```
 
-4. Open http://localhost:8000, click **Run demo scenario** (or seed first via `POST /seed`).
+4. Start RecallDesk (terminal 2):
+
+```powershell
+# Windows PowerShell
+.\start-app.ps1
+```
+
+```bash
+# macOS / Linux
+python -m uvicorn app.main:app --port 8000 --app-dir backend
+```
+
+5. Open http://localhost:8000, click **Run demo scenario** (or seed first via `POST /seed`).
 
 ## Architecture
 

@@ -49,8 +49,8 @@ class MemoryLayer:
     memory and the UI can flag the degraded state.
     """
 
-    def __init__(self, base_url: str) -> None:
-        self._client = Hindsight(base_url=base_url)
+    def __init__(self, base_url: str, api_key: str | None = None) -> None:
+        self._client = Hindsight(base_url=base_url, api_key=api_key)
         self.available = True
 
     def ping(self) -> bool:
